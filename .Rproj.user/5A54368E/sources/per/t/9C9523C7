@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1575400336567.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3328627243",
+    "id" : "9C9523C7",
+    "lastKnownWriteTime" : 1575497803,
+    "last_content_update" : 1575497803738,
+    "path" : "~/Repos/avinaDescriptiva/app.R",
+    "project_path" : "app.R",
+    "properties" : {
+        "cursorPosition" : "69,20",
+        "scrollLine" : "49",
+        "tempName" : "Untitled2"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
