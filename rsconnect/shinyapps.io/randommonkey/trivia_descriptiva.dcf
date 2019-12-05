@@ -5,9 +5,9 @@ account: randommonkey
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 1560930
-bundleId: 2641937
+bundleId: 2644224
 url: https://randommonkey.shinyapps.io/trivia_descriptiva/
-when: 1575497884.61788
+when: 1575564958.23887
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: prep_data.R

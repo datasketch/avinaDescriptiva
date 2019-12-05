@@ -2,6 +2,7 @@ library(dsAppLayout)
 library(shiny)
 library(tidyverse)
 library(hgchmagic)
+library(DT)
 # Data
 
 data_trivia <- read_csv('data/dic_trivia.csv')
@@ -25,32 +26,103 @@ styles <-
   box-sizing: inherit;
 }
 
-html {
-  box-sizing: border-box;
-  font-family: 'Barlow', sans-serif;
-}
 
 body {
   margin: 0;
+   font-family: Barlow,sans-serif;
+ font-weight: 400;
 }
 
-.irs-grid {
-width: 80% !important;
+
+.irs.js-irs-0,.irs-with-grid {
+ margin: 10px 10px !important;
 }
 
-.irs-to {
-left: 87.3531% !important;
+.title-filters {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #424242;
+ text-transform: uppercase;
 }
 
-.irs-from {
-left: 0.39562% !important;
+h3 {
+ color: #1E9B8C;
+ font-size: 17px;
+ margin-bottom: 15px;
+}
+
+span {
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.panel {
+ border-top: 2px solid #1E9B8C;
+}
+.control-label {
+margin: 0px !important;
+}
+
+input[type='radio']:active, input[type='radio']:checked:active, input[type='radio']:checked {
+    background-color: #1E9B8C;
+}
+input[type='radio'] {
+    background-color: #C1C1C1;
+    border: 3px solid #424242;
+}
+
+.form-group input, .form-group textarea {
+ font-family: Barlow,sans-serif !important;
+}
+
+.margin-b {
+margin-bottom: 10px;
+}
+
+.irs-bar {
+    background-color: #1E9B8C !important;
+    border: 1px solid #424242 !important;
+}
+
+.irs-slider {
+    border: 1px solid #424242 !important;
+   background-color: #1E9B8C !important;
+}
+
+.selectize-input {
+  border: 1px solid #F0F4F5 !important;
+  background: #F0F4F5 !important; 
+  color: #424242;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 20px;
+ padding: 0px 25px !important;
+}
+
+#descripcion {
+ border: 1px solid #FAD946;
+ padding: 20px 20px;
+ background: #fad94682;
+ border-radius: 3px;
+}
+
+.checkbox {
+ margin-right: 37px;
 }
 
 "
 ui <- dsAppPanels( styles = styles,
+                   # panel(
+                   #    title = h3(id = "panel-viz", 'DATOS'), 
+                   #    color = "olive", collapsed = T, width = 500,
+                   #    body = div(
+                   #       dataTableOutput('dataViz')
+                   #    )
+                   # ),
                    panel(
                       title = h3(id = "panel-filtros", 'FILTROS DE BÚSQUEDA'), 
-                      color = "olive", collapsed = FALSE, width = 500,
+                      color = "olive", collapsed = FALSE, width = 450,
                       body = div(
                          uiOutput('resultado'),
                          uiOutput('preguntas'),
@@ -65,7 +137,7 @@ ui <- dsAppPanels( styles = styles,
                       color = "olive", collapsed = FALSE, 
                       body = div(
                          #verbatimTextOutput('aver'),
-                         highchartOutput('plot_viz')
+                         highchartOutput('plot_viz', height = 550)
                       )
                    )
                    
@@ -74,8 +146,12 @@ ui <- dsAppPanels( styles = styles,
 server <- function(input, output, session) {
    
    
+   output$dataViz <- renderDataTable({
+      datatable(results)
+   })
+   
    output$resultado <- renderUI({
-      radioButtons('id_res', 'Vista por', c('Pregunta', 'Resultado'))
+      radioButtons('id_res', HTML('<div class = "title-filters">Vista por</div>'), c('Pregunta', 'Resultado'))
    })
    
    output$preguntas <- renderUI({
@@ -86,21 +162,18 @@ server <- function(input, output, session) {
       
       selectizeInput('id_q',  ' ', setNames( unique(data_trivia$question_id), unique(data_trivia$id_text)))
       
-      
-      
-      
    })
    
    output$genero <- renderUI({
       
-      checkboxGroupInput('id_gen', 'Clasificar por', c('Mujeres' = 'mujer', 'Hombres' = 'hombre'), selected = c('mujer', 'hombre'))
+      checkboxGroupInput('id_gen', HTML('<div class = "title-filters margin-b">Clasificar por</div>'), c('Mujeres' = 'mujer', 'Hombres' = 'hombre'), selected = c('mujer', 'hombre'))
    })
    
    output$tiempo <- renderUI({
       
       min_f <-  min(data_summary$Fecha)
       max_f <- max(data_summary$Fecha)
-      sliderInput('id_time', 'Selecciona rango de tiempo', 
+      sliderInput('id_time', HTML('<div class = "title-filters margin-b"> Selecciona rango de tiempo</div>'), 
                   min = min_f,
                   max = max_f,
                   value= c(min_f, 
@@ -109,13 +182,13 @@ server <- function(input, output, session) {
    
    
    output$valor <- renderUI({
-      radioButtons('id_valor', 'Mostrar', c('Proporción', 'Total'), inline = T)
+      radioButtons('id_valor', HTML('<div class = "title-filters">Mostrar</div>'), c('Proporción', 'Total'), inline = T)
    })
    
    data_filter <- reactive({
       
       id_genero <- input$id_gen
-      if (is.null(id_genero)) return()
+      if (is.null(id_genero)) id_genero <- c('mujer', 'hombre')
       
       tiempo_min <- input$id_time[1]
       if (is.null(tiempo_min)) return()
@@ -135,8 +208,7 @@ server <- function(input, output, session) {
             filter(question_id %in% quest) %>% select(choices, answer_weight = choices_id)
          dt_f <- dt_f %>% filter(question_id %in% quest)
          dt_f <- dt_f %>% left_join(dic_triv)
-         dt_f <- dt_f %>% select(identifies_as, choices)
-         print(dt_f)
+         dt_f <- dt_f %>% select(`Género` = identifies_as, Respuestas = choices) 
       } else {
          dt_f <- dt_f  %>% 
                   group_by(session_id, identifies_as) %>% 
@@ -144,12 +216,12 @@ server <- function(input, output, session) {
          
          dt_f$Tipo <- ifelse(dt_f$mean > 55, 'Guardian@s', 'Viv@s')
          dt_f <- dt_f %>%
-                  select(Tipo, identifies_as)
+            select(Tipo, `Género` = identifies_as) 
          dt_f <- dt_f[,-1]
       }
  
  
-      if (length(unique(dt_f$identifies_as)) == 1) dt_f <- dt_f %>% select(-identifies_as)
+      if (length(unique(dt_f$`Género`)) == 1 | is.null(input$id_gen)) dt_f <- dt_f %>% select(-`Género`)
       
       dt_f
       
@@ -161,7 +233,7 @@ server <- function(input, output, session) {
 
 
       id_genero <- input$id_gen
-      if (is.null(id_genero)) return('Debes seleccionar al menos una opción en Clasificar por')
+      if (is.null(id_genero)) ig_genero <- c('mujer', 'hombre')
 
       tiempo_min <- input$id_time[1]
       if (is.null(tiempo_min)) return()
@@ -183,9 +255,9 @@ server <- function(input, output, session) {
     }) 
    
    
-   output$aver <- renderPrint({
-      data_filter()
-   })
+   # output$aver <- renderPrint({
+   #    data_filter()
+   # })
    
    output$plot_viz <- renderHighchart({
 
@@ -202,11 +274,21 @@ server <- function(input, output, session) {
          pr <- FALSE
       }
 
-
+      tm_l <- list (
+         font_family = "Barlow",
+         font_color = '#424242',
+         stylesLabelY_fontSize = '13px',
+         labsData_familyLabel = "Barlow",
+         colors = c('#1E9B8C', '#CE2955', '#E0800E', '#A2ED66', '#2EC4B5', '#F2BF2F')
+      )
       list_op <- list(percentage = pr,
                       agg_text = ' ',
+                      horLabel = ' ',
+                      verLabel = ' ',
+                      orientation = 'hor',
                       labelWrap = 100,
-                      labelWrapV = c(100, 100))
+                      labelWrapV = c(100, 100),
+                      theme = tma(tm_l))
 
       if (ncol(dt_v) == 2) {
          v <- hgch_bar_CatCat(dt_v, opts = list_op)
