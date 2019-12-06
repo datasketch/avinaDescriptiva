@@ -43,7 +43,6 @@ body {
   font-weight: 600;
   letter-spacing: 1px;
   color: #424242;
- text-transform: uppercase;
 }
 
 h3 {
@@ -105,11 +104,63 @@ margin-bottom: 10px;
  padding: 20px 20px;
  background: #fad94682;
  border-radius: 3px;
+ margin-bottom: 15px;
 }
 
 .checkbox {
  margin-right: 37px;
 }
+
+.info-tool {
+ display: flex;
+}
+
+.tooltip-inf {
+ cursor: pointer;
+ position: relative;
+ margin-left: 3px;
+}
+
+.tooltip-inf .tooltiptext {
+  visibility: hidden;
+  width: 210px;
+  higth: auto;
+  background-color: #fafafa;
+  color: #CE2955;
+  position: absolute;
+  z-index: 9999;
+  top: 0;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  font-weight: 400;
+  letter-spacing: normal;
+  font-size: 0.75rem;
+}
+
+.tooltip-inf:hover .tooltiptext {
+  visibility: visible;
+}
+
+
+@media (max-width: 426px) {
+.app-container {
+    display: block !important;
+}
+
+
+.panel#panel-filtros {
+    width:  100% !important;
+}
+
+}
+
+
+@media (max-width: 769px) {
+.panel#panel-filtros {
+width: 50% !important;
+}
+}
+
 
 "
 ui <- dsAppPanels( styles = styles,
@@ -122,14 +173,14 @@ ui <- dsAppPanels( styles = styles,
                    # ),
                    panel(
                       title = h3(id = "panel-filtros", 'FILTROS DE BÚSQUEDA'), 
-                      color = "olive", collapsed = FALSE, width = 450,
+                      color = "olive", collapsed = FALSE, id = 'panel-filtros', width = 400,
                       body = div(
+                         uiOutput('descripcion'),
                          uiOutput('resultado'),
                          uiOutput('preguntas'),
                          uiOutput('genero'),
                          uiOutput('tiempo'),
-                         uiOutput('valor'),
-                         uiOutput('descripcion')
+                         uiOutput('valor')
                       )
                    ),
                    panel(
@@ -151,7 +202,10 @@ server <- function(input, output, session) {
    })
    
    output$resultado <- renderUI({
-      radioButtons('id_res', HTML('<div class = "title-filters">Vista por</div>'), c('Pregunta', 'Resultado'))
+      div(
+         HTML('<div class= "info-tool title-filters"> VISTA POR <div class="tooltip-inf"> <i class="fa fa-info-circle"></i><span class="tooltiptext">Selecciona el tipo de vista que quieres, si seleccionas RESULTADO se grafica la conclusión promedio final de la trivia, si seleccionas PREGUNTAS podrás ver el detalle de cada una de las preguntas de la trivia</span</div></div></div>'),
+      radioButtons('id_res', ' ', c('Resultado', 'Pregunta'))
+      )
    })
    
    output$preguntas <- renderUI({
@@ -165,24 +219,32 @@ server <- function(input, output, session) {
    })
    
    output$genero <- renderUI({
-      
-      checkboxGroupInput('id_gen', HTML('<div class = "title-filters margin-b">Clasificar por</div>'), c('Mujeres' = 'mujer', 'Hombres' = 'hombre'), selected = c('mujer', 'hombre'))
+      div(
+         HTML('<div class= "info-tool title-filters margin-b"> CLASIFICAR POR  <div class="tooltip-inf"> <i class="fa fa-info-circle"></i><span class="tooltiptext">Aquí puedes seleccionar la agrupación de la gráfica por género, si no seleccionas ninguna se mostrará la gráfica del total de personas que han resuelto la trivia.</span</div></div></div>'),
+      checkboxGroupInput('id_gen', ' ',c('Mujeres' = 'mujer', 'Hombres' = 'hombre'), selected = c('mujer', 'hombre'))
+      )
    })
    
    output$tiempo <- renderUI({
       
       min_f <-  min(data_summary$Fecha)
       max_f <- max(data_summary$Fecha)
-      sliderInput('id_time', HTML('<div class = "title-filters margin-b"> Selecciona rango de tiempo</div>'), 
+      div(
+         HTML('<div class= "info-tool title-filters margin-b"> RANGO DE TIEMPO<div class="tooltip-inf"> <i class="fa fa-info-circle"></i><span class="tooltiptext">Aquí se muestran las fechas durante las cuales distintas personas han resuelto la trivia, puedes arrastrar los círculos y filtrar por las fechas que desees. </span</div></div></div>'),
+      sliderInput('id_time', ' ', 
                   min = min_f,
                   max = max_f,
                   value= c(min_f, 
                            max_f))
+      )
    })
    
    
    output$valor <- renderUI({
-      radioButtons('id_valor', HTML('<div class = "title-filters">Mostrar</div>'), c('Proporción', 'Total'), inline = T)
+      div(
+         HTML('<div class= "info-tool title-filters"> MOSTRAR POR <div class="tooltip-inf"> <i class="fa fa-info-circle"></i><span class="tooltiptext"> Número total o proporción de las personas que han resuelto la trivia</span</div></div></div>'),
+      radioButtons('id_valor', ' ', c('Total', 'Proporción'), inline = T)
+      )
    })
    
    data_filter <- reactive({
@@ -249,7 +311,7 @@ server <- function(input, output, session) {
       if (identical(t_h, integer(0))) t_h <- 0
       if (nrow(data_filter()) == 0) tx <- 'Nadie a respondido la trivia en el periodo de tiempo seleccionado'
 
-      tx <- HTML(paste0('Del ', tiempo_min, ' hasta ', tiempo_max,' han resuelto la trivia ', sum(dt_g$Total, na.rm = T), ' personas, de las cuales ', t_m ,' son mujeres y ', t_h ,' son hombres'))
+      tx <- HTML(paste0('Del ', tiempo_min, ' hasta ', tiempo_max,' han resuelto la trivia ', sum(dt_g$Total, na.rm = T), ' personas, de las cuales ', t_m ,' son mujeres y ', t_h ,' son hombres. <br/>  <br/> Puedes elegir que controles usar para filtrar los resultados de la trivia. Para más detalle de los filtros, pasa el cursor por el icono de información.'))
 
       tx
     }) 
